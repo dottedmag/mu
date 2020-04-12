@@ -2,6 +2,7 @@
 A mode for working with Snek boards. https://keithp.com/snek
 
 Copyright © 2019 Keith Packard
+Copyright © 2020 Mikhail Gusarov
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,12 +18,43 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import logging
-from mu.modes.base import MicroPythonMode
+from mu.modes.base import BaseMode, MicroPythonMode
 from mu.modes.api import SNEK_APIS
 from mu.interface.panes import CHARTS
 from PyQt5.QtWidgets import QMessageBox
 
 logger = logging.getLogger(__name__)
+
+
+class ZeroconfListener:
+    def __init__(self):
+        self.services = {}
+
+    def add_service(self, zc, type, name):
+        info = zc.get_service_info(type, name)
+        if len(info.addresses) > 0:
+            address = "{}.{}.{}.{}".format(
+                info.addresses[0][0],
+                info.addresses[0][1],
+                info.addresses[0][2],
+                info.addresses[0][3],
+            )
+            self.services[name] = (address, info.port)
+
+    def remove_service(self, zc, type, name):
+        self.services.pop(name, None)
+
+
+li = ZeroconfListener()
+
+
+try:
+    import zeroconf
+
+    zc = zeroconf.Zeroconf()
+    br = zeroconf.ServiceBrowser(zc, "_snek._tcp.local.", li)
+except ImportError:
+    pass
 
 
 class SnekMode(MicroPythonMode):
@@ -265,8 +297,8 @@ class SnekMode(MicroPythonMode):
             self.view.show_message(message, information)
             return
         python_script = tab.text()
-        if python_script[-1] != '\n':
-            python_script += '\n'
+        if python_script[-1] != "\n":
+            python_script += "\n"
         if not self.repl:
             self.toggle_repl(None)
         command = ("eeprom.write()\n" + python_script + "\x04" + "reset()\n",)
@@ -322,12 +354,7 @@ class SnekMode(MicroPythonMode):
         device_port, serial_number = self.find_device()
         if device_port:
             try:
-                rate = 38400
-                if (self.vid, self.pid) not in self.slow_boards:
-                    rate = 115200
-                self.view.add_snek_repl(
-                    device_port, self.name, self.force_interrupt, rate=rate
-                )
+                self.view.add_snek_repl(device_port, self.name, self.force_interrupt)
                 logger.info("Started REPL on port: {}".format(device_port))
                 self.repl = True
             except IOError as ex:
@@ -351,3 +378,55 @@ class SnekMode(MicroPythonMode):
                 " before trying again."
             )
             self.view.show_message(message, information)
+
+
+class EV3SnekMode(SnekMode):
+    def find_device(self, with_logging=True):
+        print(li.services)
+        for svc in li.services.values():
+            logger.debug("Service {}".format(svc))
+        for svc in li.services.values():
+            return svc[0][0], svc[1]
+        return (None, None)
+
+    def toggle_repl(self, event):
+        if self.repl:
+            self.remove_repl()
+            logger.info("Toggle REPL off.")
+        else:
+            self.add_repl()
+            logger.info("Toggle REPL on.")
+
+    def remove_repl(self):
+        self.view.remove_repl()
+        self.repl = False
+
+    def add_repl(self):
+        print("add_repl")
+        device_addr, device_port = self.find_device()
+        if device_addr:
+            try:
+                print("adding repl")
+                self.view.add_snek_net_repl(
+                    device_addr, device_port, self.name, self.force_interrupt
+                )
+                logger.info("Started REPL on port: {}".format(device_port))
+                self.repl = True
+            except IOError as ex:
+                print("FAIL")
+                logger.error(ex)
+                self.repl = False
+                info = _(
+                    "Click on the device's reset button, wait a few"
+                    " seconds and then try again."
+                )
+                self.view.show_message(str(ex), info)
+            except Exception as ex:
+                print("FAIL", ex)
+                logger.error(ex)
+        else:
+            self.view.show_message("can't find anything", "")
+
+    def on_data_flood(self):
+        self.remove_repl()
+        super().on_data_flood()

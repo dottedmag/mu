@@ -42,6 +42,7 @@ from mu.modes import (
     ESPMode,
     WebMode,
     SnekMode,
+    EV3SnekMode,
 )
 from mu.debugger.runner import run as run_debugger
 from mu.interface.themes import NIGHT_STYLE, DAY_STYLE, CONTRAST_STYLE
@@ -56,8 +57,7 @@ def setup_logging():
 
     # set logging format
     log_fmt = (
-        "%(asctime)s - %(name)s:%(lineno)d(%(funcName)s) "
-        "%(levelname)s: %(message)s"
+        "%(asctime)s - %(name)s:%(lineno)d(%(funcName)s) " "%(levelname)s: %(message)s"
     )
     formatter = logging.Formatter(log_fmt)
 
@@ -88,6 +88,7 @@ def setup_modes(editor, view):
         "microbit": MicrobitMode(editor, view),
         "esp": ESPMode(editor, view),
         "snek": SnekMode(editor, view),
+        "ev3-snek": EV3SnekMode(editor, view),
         "web": WebMode(editor, view),
         "debugger": DebugMode(editor, view),
     }

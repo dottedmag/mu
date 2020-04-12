@@ -42,6 +42,7 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QKeySequence, QStandardItemModel
 from PyQt5.QtSerialPort import QSerialPort
+from PyQt5.QtNetwork import QTcpSocket
 from mu import __version__
 from mu.interface.dialogs import (
     ModeSelector,
@@ -108,9 +109,7 @@ class ButtonBar(QToolBar):
             tool_text=_("Create a new Python script."),
         )
         self.addAction(
-            name="load",
-            display_name=_("Load"),
-            tool_text=_("Load a Python script."),
+            name="load", display_name=_("Load"), tool_text=_("Load a Python script."),
         )
         self.addAction(
             name="save",
@@ -140,9 +139,7 @@ class ButtonBar(QToolBar):
         self.addAction(
             name="theme",
             display_name=_("Theme"),
-            tool_text=_(
-                "Toggle theme between day, night or " "high contrast."
-            ),
+            tool_text=_("Toggle theme between day, night or " "high contrast."),
         )
         self.addSeparator()
         self.addAction(
@@ -162,9 +159,7 @@ class ButtonBar(QToolBar):
             tool_text=_("Show help about Mu in a browser."),
         )
         self.addSeparator()
-        self.addAction(
-            name="quit", display_name=_("Quit"), tool_text=_("Quit Mu.")
-        )
+        self.addAction(name="quit", display_name=_("Quit"), tool_text=_("Quit Mu."))
 
     def set_responsive_mode(self, width, height):
         """
@@ -186,9 +181,7 @@ class ButtonBar(QToolBar):
         Creates an action associated with an icon and name and adds it to the
         widget's slots.
         """
-        action = QAction(
-            load_icon(name), display_name, self, toolTip=tool_text
-        )
+        action = QAction(load_icon(name), display_name, self, toolTip=tool_text)
         super().addAction(action)
         self.slots[name] = action
 
@@ -222,8 +215,7 @@ class FileTabs(QTabWidget):
         modified = self.widget(tab_id).isModified()
         if modified:
             msg = (
-                "There is un-saved work, closing the tab will cause you "
-                "to lose it."
+                "There is un-saved work, closing the tab will cause you " "to lose it."
             )
             if window.show_confirmation(msg) == QMessageBox.Cancel:
                 return
@@ -308,6 +300,7 @@ class Window(QMainWindow):
     timer = None
     usb_checker = None
     serial = None
+    conn = None
     repl = None
     plotter = None
     zooms = ("xs", "s", "m", "l", "xl", "xxl", "xxxl")  # levels of zoom.
@@ -387,11 +380,7 @@ class Window(QMainWindow):
         behaviour)
         """
         if allow_previous:
-            open_in = (
-                folder
-                if self.previous_folder is None
-                else self.previous_folder
-            )
+            open_in = folder if self.previous_folder is None else self.previous_folder
         else:
             open_in = folder
         path, _ = QFileDialog.getOpenFileName(
@@ -546,6 +535,14 @@ class Window(QMainWindow):
             self.serial.close()
             self.serial = None
 
+    def connect(self, addr, port):
+        print(addr)
+        self.input_buffer = []
+        self.conn = QTcpSocket()
+        self.conn.connectToHost(addr, port)
+        self.conn.readyRead.connect(self.on_serial_read)
+        self.serial = self.conn
+
     def add_filesystem(self, home, file_manager, board_name="board"):
         """
         Adds the file system pane to the application.
@@ -605,10 +602,21 @@ class Window(QMainWindow):
 
             if force_interrupt:
                 # Send a Control-O / exit raw mode.
-                self.serial.write(b'\x0f')
+                self.serial.write(b"\x0f")
                 # Send a Control-C / keyboard interrupt.
-                self.serial.write(b'\x03')
+                self.serial.write(b"\x03")
         repl_pane = SnekREPLPane(serial=self.serial)
+        self.data_received.connect(repl_pane.process_bytes)
+        self.add_repl(repl_pane, name)
+
+    def add_snek_net_repl(self, address, port, name, force_interrupt=True):
+        if not self.conn:
+            self.connect(address, port)
+
+            if force_interrupt:
+                self.conn.write(b"\x0f")
+                self.conn.write(b"\x03")
+        repl_pane = SnekREPLPane(conn=self.conn)
         self.data_received.connect(repl_pane.process_bytes)
         self.add_repl(repl_pane, name)
 
@@ -656,9 +664,7 @@ class Window(QMainWindow):
         self.repl.setWidget(repl_pane)
         self.repl.setFeatures(QDockWidget.DockWidgetMovable)
         self.repl.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
+            Qt.BottomDockWidgetArea | Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
         )
         self.addDockWidget(Qt.BottomDockWidgetArea, self.repl)
         self.connect_zoom(self.repl_pane)
@@ -674,9 +680,7 @@ class Window(QMainWindow):
         self.plotter.setWidget(plotter_pane)
         self.plotter.setFeatures(QDockWidget.DockWidgetMovable)
         self.plotter.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
+            Qt.BottomDockWidgetArea | Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
         )
         self.addDockWidget(Qt.BottomDockWidgetArea, self.plotter)
         self.plotter_pane.set_theme(self.theme)
@@ -726,9 +730,7 @@ class Window(QMainWindow):
         self.runner.setWidget(self.process_runner)
         self.runner.setFeatures(QDockWidget.DockWidgetMovable)
         self.runner.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
+            Qt.BottomDockWidgetArea | Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
         )
         self.addDockWidget(Qt.BottomDockWidgetArea, self.runner)
         self.process_runner.start_process(
@@ -757,9 +759,7 @@ class Window(QMainWindow):
         self.inspector.setWidget(self.debug_inspector)
         self.inspector.setFeatures(QDockWidget.DockWidgetMovable)
         self.inspector.setAllowedAreas(
-            Qt.BottomDockWidgetArea
-            | Qt.LeftDockWidgetArea
-            | Qt.RightDockWidgetArea
+            Qt.BottomDockWidgetArea | Qt.LeftDockWidgetArea | Qt.RightDockWidgetArea
         )
         self.addDockWidget(Qt.RightDockWidgetArea, self.inspector)
         self.connect_zoom(self.debug_inspector)
@@ -784,17 +784,12 @@ class Window(QMainWindow):
                 list_item = DebugInspectorItem(name)
                 for i, i_val in enumerate(val):
                     list_item.appendRow(
-                        [
-                            DebugInspectorItem(str(i)),
-                            DebugInspectorItem(repr(i_val)),
-                        ]
+                        [DebugInspectorItem(str(i)), DebugInspectorItem(repr(i_val)),]
                     )
                 self.debug_model.appendRow(
                     [
                         list_item,
-                        DebugInspectorItem(
-                            _("(A list of {} items.)").format(len(val))
-                        ),
+                        DebugInspectorItem(_("(A list of {} items.)").format(len(val))),
                     ]
                 )
             elif isinstance(val, dict):
@@ -802,25 +797,17 @@ class Window(QMainWindow):
                 dict_item = DebugInspectorItem(name)
                 for k, k_val in val.items():
                     dict_item.appendRow(
-                        [
-                            DebugInspectorItem(repr(k)),
-                            DebugInspectorItem(repr(k_val)),
-                        ]
+                        [DebugInspectorItem(repr(k)), DebugInspectorItem(repr(k_val)),]
                     )
                 self.debug_model.appendRow(
                     [
                         dict_item,
-                        DebugInspectorItem(
-                            _("(A dict of {} items.)").format(len(val))
-                        ),
+                        DebugInspectorItem(_("(A dict of {} items.)").format(len(val))),
                     ]
                 )
             else:
                 self.debug_model.appendRow(
-                    [
-                        DebugInspectorItem(name),
-                        DebugInspectorItem(locals_dict[name]),
-                    ]
+                    [DebugInspectorItem(name), DebugInspectorItem(locals_dict[name]),]
                 )
 
     def remove_filesystem(self):
@@ -1190,9 +1177,7 @@ class Window(QMainWindow):
                     counter += 1
             return counter
         else:
-            found = self.current_tab.findFirst(
-                target_text, True, True, False, True
-            )
+            found = self.current_tab.findFirst(target_text, True, True, False, True)
             if found:
                 self.current_tab.replace(replace)
                 return 1
@@ -1205,9 +1190,7 @@ class Window(QMainWindow):
         the current tab for the target_text. Returns True if there's a match.
         """
         if self.current_tab:
-            return self.current_tab.findFirst(
-                target_text, True, True, False, True
-            )
+            return self.current_tab.findFirst(target_text, True, True, False, True)
         else:
             return False
 
@@ -1254,9 +1237,7 @@ class StatusBar(QStatusBar):
         Connect the mouse press event and keyboard shortcut for the log widget
         to the referenced handler function.
         """
-        self.logs_label.shortcut = QShortcut(
-            QKeySequence(shortcut), self.parent()
-        )
+        self.logs_label.shortcut = QShortcut(QKeySequence(shortcut), self.parent())
         self.logs_label.shortcut.activated.connect(handler)
         self.logs_label.mousePressEvent = handler
 
@@ -1265,9 +1246,7 @@ class StatusBar(QStatusBar):
         Connect the mouse press event and keyboard shortcut for the mode widget
         to the referenced handler function.
         """
-        self.mode_label.shortcut = QShortcut(
-            QKeySequence(shortcut), self.parent()
-        )
+        self.mode_label.shortcut = QShortcut(QKeySequence(shortcut), self.parent())
         self.mode_label.shortcut.activated.connect(handler)
         self.mode_label.mousePressEvent = handler
 

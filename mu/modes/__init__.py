@@ -1,6 +1,6 @@
 from .python3 import PythonMode
 from .circuitpython import CircuitPythonMode
-from .snek import SnekMode
+from .snek import SnekMode, EV3SnekMode
 from .microbit import MicrobitMode
 from .debugger import DebugMode
 from .pygamezero import PyGameZeroMode
@@ -16,4 +16,5 @@ __all__ = [
     "ESPMode",
     "WebMode",
     "SnekMode",
+    "EV3SnekMode",
 ]
