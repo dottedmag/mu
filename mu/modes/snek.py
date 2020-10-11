@@ -265,8 +265,8 @@ class SnekMode(MicroPythonMode):
             self.view.show_message(message, information)
             return
         python_script = tab.text()
-        if python_script[-1] != '\n':
-            python_script += '\n'
+        if python_script[-1] != "\n":
+            python_script += "\n"
         if not self.repl:
             self.toggle_repl(None)
         command = ("eeprom.write()\n" + python_script + "\x04" + "reset()\n",)

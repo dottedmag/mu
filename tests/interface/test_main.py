@@ -957,15 +957,15 @@ def test_Window_add_snek_repl():
     w.data_received = mock.MagicMock()
     mock_repl = mock.MagicMock()
     mock_repl_class = mock.MagicMock(return_value=mock_repl)
-    with mock.patch('mu.interface.main.SnekREPLPane', mock_repl_class):
-        w.add_snek_repl('COM0', 'Test REPL')
+    with mock.patch("mu.interface.main.SnekREPLPane", mock_repl_class):
+        w.add_snek_repl("COM0", "Test REPL")
     mock_repl_class.assert_called_once_with(serial=w.serial)
     w.open_serial_link.assert_called_once_with("COM0", rate=115200)
     assert w.serial.write.call_count == 2
-    assert w.serial.write.call_args_list[0][0][0] == b'\x0f'
-    assert w.serial.write.call_args_list[1][0][0] == b'\x03'
+    assert w.serial.write.call_args_list[0][0][0] == b"\x0f"
+    assert w.serial.write.call_args_list[1][0][0] == b"\x03"
     w.data_received.connect.assert_called_once_with(mock_repl.process_bytes)
-    w.add_repl.assert_called_once_with(mock_repl, 'Test REPL')
+    w.add_repl.assert_called_once_with(mock_repl, "Test REPL")
 
 
 def test_Window_add_snek_repl_no_interrupt():
@@ -984,13 +984,13 @@ def test_Window_add_snek_repl_no_interrupt():
     w.data_received = mock.MagicMock()
     mock_repl = mock.MagicMock()
     mock_repl_class = mock.MagicMock(return_value=mock_repl)
-    with mock.patch('mu.interface.main.SnekREPLPane', mock_repl_class):
-        w.add_snek_repl('COM0', 'Test REPL', False)
+    with mock.patch("mu.interface.main.SnekREPLPane", mock_repl_class):
+        w.add_snek_repl("COM0", "Test REPL", False)
     mock_repl_class.assert_called_once_with(serial=w.serial)
     w.open_serial_link.assert_called_once_with("COM0", rate=115200)
     assert w.serial.write.call_count == 0
     w.data_received.connect.assert_called_once_with(mock_repl.process_bytes)
-    w.add_repl.assert_called_once_with(mock_repl, 'Test REPL')
+    w.add_repl.assert_called_once_with(mock_repl, "Test REPL")
 
 
 def test_Window_add_micropython_plotter():

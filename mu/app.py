@@ -57,7 +57,8 @@ def setup_logging():
 
     # set logging format
     log_fmt = (
-        "%(asctime)s - %(name)s:%(lineno)d(%(funcName)s) " "%(levelname)s: %(message)s"
+        "%(asctime)s - %(name)s:%(lineno)d(%(funcName)s) "
+        "%(levelname)s: %(message)s"
     )
     formatter = logging.Formatter(log_fmt)
 

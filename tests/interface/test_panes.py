@@ -523,13 +523,13 @@ def test_SnekREPLPane_paste():
     """
     mock_serial = mock.MagicMock()
     mock_clipboard = mock.MagicMock()
-    mock_clipboard.text.return_value = 'paste me!'
+    mock_clipboard.text.return_value = "paste me!"
     mock_application = mock.MagicMock()
     mock_application.clipboard.return_value = mock_clipboard
-    with mock.patch('mu.interface.panes.QApplication', mock_application):
+    with mock.patch("mu.interface.panes.QApplication", mock_application):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.paste()
-    mock_serial.write.assert_called_once_with(bytes('paste me!', 'utf8'))
+    mock_serial.write.assert_called_once_with(bytes("paste me!", "utf8"))
 
 
 def test_SnekREPLPane_paste_handle_unix_newlines():
@@ -540,13 +540,13 @@ def test_SnekREPLPane_paste_handle_unix_newlines():
     """
     mock_serial = mock.MagicMock()
     mock_clipboard = mock.MagicMock()
-    mock_clipboard.text.return_value = 'paste\nme!'
+    mock_clipboard.text.return_value = "paste\nme!"
     mock_application = mock.MagicMock()
     mock_application.clipboard.return_value = mock_clipboard
-    with mock.patch('mu.interface.panes.QApplication', mock_application):
+    with mock.patch("mu.interface.panes.QApplication", mock_application):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.paste()
-    mock_serial.write.assert_called_once_with(bytes('paste\rme!', 'utf8'))
+    mock_serial.write.assert_called_once_with(bytes("paste\rme!", "utf8"))
 
 
 def test_SnekREPLPane_paste_handle_windows_newlines():
@@ -557,13 +557,13 @@ def test_SnekREPLPane_paste_handle_windows_newlines():
     """
     mock_serial = mock.MagicMock()
     mock_clipboard = mock.MagicMock()
-    mock_clipboard.text.return_value = 'paste\r\nme!'
+    mock_clipboard.text.return_value = "paste\r\nme!"
     mock_application = mock.MagicMock()
     mock_application.clipboard.return_value = mock_clipboard
-    with mock.patch('mu.interface.panes.QApplication', mock_application):
+    with mock.patch("mu.interface.panes.QApplication", mock_application):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.paste()
-    mock_serial.write.assert_called_once_with(bytes('paste\rme!', 'utf8'))
+    mock_serial.write.assert_called_once_with(bytes("paste\rme!", "utf8"))
 
 
 def test_SnekREPLPane_paste_only_works_if_there_is_something_to_paste():
@@ -572,10 +572,10 @@ def test_SnekREPLPane_paste_only_works_if_there_is_something_to_paste():
     """
     mock_serial = mock.MagicMock()
     mock_clipboard = mock.MagicMock()
-    mock_clipboard.text.return_value = ''
+    mock_clipboard.text.return_value = ""
     mock_application = mock.MagicMock()
     mock_application.clipboard.return_value = mock_clipboard
-    with mock.patch('mu.interface.panes.QApplication', mock_application):
+    with mock.patch("mu.interface.panes.QApplication", mock_application):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.paste()
     assert mock_serial.write.call_count == 0
@@ -588,23 +588,23 @@ def test_SnekREPLPane_context_menu():
     """
     mock_serial = mock.MagicMock()
     mock_platform = mock.MagicMock()
-    mock_platform.system.return_value = 'WinNT'
+    mock_platform.system.return_value = "WinNT"
     mock_qmenu = mock.MagicMock()
     mock_qmenu_class = mock.MagicMock(return_value=mock_qmenu)
-    with mock.patch('mu.interface.panes.platform', mock_platform), \
-            mock.patch('mu.interface.panes.QMenu', mock_qmenu_class), \
-            mock.patch('mu.interface.panes.QCursor'):
+    with mock.patch("mu.interface.panes.platform", mock_platform), mock.patch(
+        "mu.interface.panes.QMenu", mock_qmenu_class
+    ), mock.patch("mu.interface.panes.QCursor"):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.context_menu()
     assert mock_qmenu.addAction.call_count == 2
     copy_action = mock_qmenu.addAction.call_args_list[0][0]
-    assert copy_action[0] == 'Copy'
+    assert copy_action[0] == "Copy"
     assert copy_action[1] == rp.copy
-    assert copy_action[2].toString() == 'Ctrl+Shift+C'
+    assert copy_action[2].toString() == "Ctrl+Shift+C"
     paste_action = mock_qmenu.addAction.call_args_list[1][0]
-    assert paste_action[0] == 'Paste'
+    assert paste_action[0] == "Paste"
     assert paste_action[1] == rp.paste
-    assert paste_action[2].toString() == 'Ctrl+Shift+V'
+    assert paste_action[2].toString() == "Ctrl+Shift+V"
     assert mock_qmenu.exec_.call_count == 1
 
 
@@ -615,23 +615,23 @@ def test_SnekREPLPane_context_menu_darwin():
     """
     mock_serial = mock.MagicMock()
     mock_platform = mock.MagicMock()
-    mock_platform.system.return_value = 'Darwin'
+    mock_platform.system.return_value = "Darwin"
     mock_qmenu = mock.MagicMock()
     mock_qmenu_class = mock.MagicMock(return_value=mock_qmenu)
-    with mock.patch('mu.interface.panes.platform', mock_platform), \
-            mock.patch('mu.interface.panes.QMenu', mock_qmenu_class), \
-            mock.patch('mu.interface.panes.QCursor'):
+    with mock.patch("mu.interface.panes.platform", mock_platform), mock.patch(
+        "mu.interface.panes.QMenu", mock_qmenu_class
+    ), mock.patch("mu.interface.panes.QCursor"):
         rp = mu.interface.panes.SnekREPLPane(mock_serial)
         rp.context_menu()
     assert mock_qmenu.addAction.call_count == 2
     copy_action = mock_qmenu.addAction.call_args_list[0][0]
-    assert copy_action[0] == 'Copy'
+    assert copy_action[0] == "Copy"
     assert copy_action[1] == rp.copy
-    assert copy_action[2].toString() == 'Ctrl+C'
+    assert copy_action[2].toString() == "Ctrl+C"
     paste_action = mock_qmenu.addAction.call_args_list[1][0]
-    assert paste_action[0] == 'Paste'
+    assert paste_action[0] == "Paste"
     assert paste_action[1] == rp.paste
-    assert paste_action[2].toString() == 'Ctrl+V'
+    assert paste_action[2].toString() == "Ctrl+V"
     assert mock_qmenu.exec_.call_count == 1
 
 
@@ -643,10 +643,10 @@ def test_SnekREPLPane_keyPressEvent():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_A)
-    data.text = mock.MagicMock(return_value='a')
+    data.text = mock.MagicMock(return_value="a")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(bytes('a', 'utf-8'))
+    mock_serial.write.assert_called_once_with(bytes("a", "utf-8"))
 
 
 def test_SnekREPLPane_keyPressEvent_backspace():
@@ -657,10 +657,10 @@ def test_SnekREPLPane_keyPressEvent_backspace():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Backspace)
-    data.text = mock.MagicMock(return_value='\b')
+    data.text = mock.MagicMock(return_value="\b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\b')
+    mock_serial.write.assert_called_once_with(b"\b")
 
 
 def test_SnekREPLPane_keyPressEvent_delete():
@@ -671,10 +671,10 @@ def test_SnekREPLPane_keyPressEvent_delete():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Delete)
-    data.text = mock.MagicMock(return_value='\b')
+    data.text = mock.MagicMock(return_value="\b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[\x33\x7E')
+    mock_serial.write.assert_called_once_with(b"\x1B[\x33\x7E")
 
 
 def test_SnekREPLPane_keyPressEvent_up():
@@ -685,10 +685,10 @@ def test_SnekREPLPane_keyPressEvent_up():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Up)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[A')
+    mock_serial.write.assert_called_once_with(b"\x1B[A")
 
 
 def test_SnekREPLPane_keyPressEvent_down():
@@ -699,10 +699,10 @@ def test_SnekREPLPane_keyPressEvent_down():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Down)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[B')
+    mock_serial.write.assert_called_once_with(b"\x1B[B")
 
 
 def test_SnekREPLPane_keyPressEvent_right():
@@ -713,10 +713,10 @@ def test_SnekREPLPane_keyPressEvent_right():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Right)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[C')
+    mock_serial.write.assert_called_once_with(b"\x1B[C")
 
 
 def test_SnekREPLPane_keyPressEvent_left():
@@ -727,10 +727,10 @@ def test_SnekREPLPane_keyPressEvent_left():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Left)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[D')
+    mock_serial.write.assert_called_once_with(b"\x1B[D")
 
 
 def test_SnekREPLPane_keyPressEvent_home():
@@ -741,10 +741,10 @@ def test_SnekREPLPane_keyPressEvent_home():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_Home)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[H')
+    mock_serial.write.assert_called_once_with(b"\x1B[H")
 
 
 def test_SnekREPLPane_keyPressEvent_end():
@@ -755,10 +755,10 @@ def test_SnekREPLPane_keyPressEvent_end():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_End)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers = mock.MagicMock(return_value=None)
     rp.keyPressEvent(data)
-    mock_serial.write.assert_called_once_with(b'\x1B[F')
+    mock_serial.write.assert_called_once_with(b"\x1B[F")
 
 
 def test_SnekREPLPane_keyPressEvent_CTRL_C_Darwin():
@@ -770,7 +770,7 @@ def test_SnekREPLPane_keyPressEvent_CTRL_C_Darwin():
     rp.copy = mock.MagicMock()
     data = mock.MagicMock()
     data.key = mock.MagicMock(return_value=Qt.Key_C)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers.return_value = Qt.ControlModifier | Qt.ShiftModifier
     rp.keyPressEvent(data)
     rp.copy.assert_called_once_with()
@@ -785,7 +785,7 @@ def test_SnekREPLPane_keyPressEvent_CTRL_V_Darwin():
     rp.paste = mock.MagicMock()
     data = mock.MagicMock()
     data.key = mock.MagicMock(return_value=Qt.Key_V)
-    data.text = mock.MagicMock(return_value='1b')
+    data.text = mock.MagicMock(return_value="1b")
     data.modifiers.return_value = Qt.ControlModifier | Qt.ShiftModifier
     rp.keyPressEvent(data)
     rp.paste.assert_called_once_with()
@@ -799,8 +799,8 @@ def test_SnekREPLPane_keyPressEvent_meta():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     data = mock.MagicMock
     data.key = mock.MagicMock(return_value=Qt.Key_M)
-    data.text = mock.MagicMock(return_value='a')
-    if platform.system() == 'Darwin':
+    data.text = mock.MagicMock(return_value="a")
+    if platform.system() == "Darwin":
         data.modifiers = mock.MagicMock(return_value=Qt.MetaModifier)
     else:
         data.modifiers = mock.MagicMock(return_value=Qt.ControlModifier)
@@ -818,8 +818,9 @@ def test_SnekREPLPane_process_bytes():
     """
     mock_serial = mock.MagicMock()
     mock_tc = mock.MagicMock()
-    mock_tc.movePosition = mock.MagicMock(side_effect=[True, False, True,
-                                                       True])
+    mock_tc.movePosition = mock.MagicMock(
+        side_effect=[True, False, True, True]
+    )
     mock_tc.deleteChar = mock.MagicMock(return_value=None)
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     rp.textCursor = mock.MagicMock(return_value=mock_tc)
@@ -852,8 +853,9 @@ def test_SnekREPLPane_process_bytes_gettext():
     """
     mock_serial = mock.MagicMock()
     mock_tc = mock.MagicMock()
-    mock_tc.movePosition = mock.MagicMock(side_effect=[True, False, True,
-                                                       True])
+    mock_tc.movePosition = mock.MagicMock(
+        side_effect=[True, False, True, True]
+    )
     mock_tc.deleteChar = mock.MagicMock(return_value=None)
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     rp.textCursor = mock.MagicMock(return_value=mock_tc)
@@ -864,7 +866,7 @@ def test_SnekREPLPane_process_bytes_gettext():
     rp.text_recv.recv_text = mock.MagicMock()
     bs = bytes([2, 65, 66, 67, 13, 3])  # \2, 'A', 'B', 'C' \r \3
     rp.process_bytes(bs)
-    rp.text_recv.recv_text.assert_called_once_with('ABC')
+    rp.text_recv.recv_text.assert_called_once_with("ABC")
 
 
 def test_SnekREPLPane_clear():
@@ -875,7 +877,7 @@ def test_SnekREPLPane_clear():
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     rp.setText = mock.MagicMock(return_value=None)
     rp.clear()
-    rp.setText.assert_called_once_with('')
+    rp.setText.assert_called_once_with("")
 
 
 def test_SnekREPLPane_set_font_size():
@@ -899,8 +901,8 @@ def test_SnekREPLPane_set_zoom():
     mock_serial = mock.MagicMock()
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
     rp.set_font_size = mock.MagicMock()
-    rp.set_zoom('xxl')
-    expected = mu.interface.panes.PANE_ZOOM_SIZES['xxl']
+    rp.set_zoom("xxl")
+    expected = mu.interface.panes.PANE_ZOOM_SIZES["xxl"]
     rp.set_font_size.assert_called_once_with(expected)
 
 
@@ -918,10 +920,10 @@ def test_SnekREPLPane_send_commands():
     ]
     rp.send_commands(commands)
     expected = [
-        b'\x0e\x03',  # Put the board into raw mode.
-        b'import os\n',  # The commands to run.
-        b'print(os.listdir())\n',
-        b'\x0f',  # Evaluate the commands.
+        b"\x0e\x03",  # Put the board into raw mode.
+        b"import os\n",  # The commands to run.
+        b"print(os.listdir())\n",
+        b"\x0f",  # Evaluate the commands.
     ]
     rp.execute.assert_called_once_with(expected)
 
@@ -933,10 +935,13 @@ def test_SnekREPLPane_execute():
     """
     mock_serial = mock.MagicMock()
     rp = mu.interface.panes.SnekREPLPane(mock_serial)
-    commands = [b'A', b'B', ]
-    with mock.patch('mu.interface.panes.QTimer') as mock_timer:
+    commands = [
+        b"A",
+        b"B",
+    ]
+    with mock.patch("mu.interface.panes.QTimer") as mock_timer:
         rp.execute(commands)
-        mock_serial.write.assert_called_once_with(b'A')
+        mock_serial.write.assert_called_once_with(b"A")
         assert mock_timer.singleShot.call_count == 1
 
 

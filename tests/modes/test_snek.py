@@ -15,23 +15,23 @@ def test_snek_mode():
     editor = mock.MagicMock()
     view = mock.MagicMock()
     am = SnekMode(editor, view)
-    assert am.name == 'Snek'
+    assert am.name == "Snek"
     assert am.description is not None
-    assert am.icon == 'snek'
+    assert am.icon == "snek"
     assert am.editor == editor
     assert am.view == view
 
     actions = am.actions()
     assert len(actions) == 4
-    assert actions[0]['name'] == 'serial'
-    assert actions[0]['handler'] == am.toggle_repl
-    assert actions[1]['name'] == 'flash'
-    assert actions[1]['handler'] == am.put
-    assert actions[2]['name'] == 'getflash'
-    assert actions[2]['handler'] == am.get
-    assert actions[3]['name'] == 'plotter'
-    assert actions[3]['handler'] == am.toggle_plotter
-    assert 'code' not in am.module_names
+    assert actions[0]["name"] == "serial"
+    assert actions[0]["handler"] == am.toggle_repl
+    assert actions[1]["name"] == "flash"
+    assert actions[1]["handler"] == am.put
+    assert actions[2]["name"] == "getflash"
+    assert actions[2]["handler"] == am.get
+    assert actions[3]["name"] == "plotter"
+    assert actions[3]["handler"] == am.toggle_plotter
+    assert "code" not in am.module_names
 
 
 def test_snek_mode_no_charts():
@@ -41,21 +41,22 @@ def test_snek_mode_no_charts():
     editor = mock.MagicMock()
     view = mock.MagicMock()
     am = SnekMode(editor, view)
-    with mock.patch('mu.modes.snek.CHARTS', False):
+    with mock.patch("mu.modes.snek.CHARTS", False):
         actions = am.actions()
         assert len(actions) == 3
-        assert actions[0]['name'] == 'serial'
-        assert actions[0]['handler'] == am.toggle_repl
-        assert actions[1]['name'] == 'flash'
-        assert actions[1]['handler'] == am.put
-        assert actions[2]['name'] == 'getflash'
-        assert actions[2]['handler'] == am.get
+        assert actions[0]["name"] == "serial"
+        assert actions[0]["handler"] == am.toggle_repl
+        assert actions[1]["name"] == "flash"
+        assert actions[1]["handler"] == am.put
+        assert actions[2]["name"] == "getflash"
+        assert actions[2]["handler"] == am.get
 
 
 def test_put():
     """
     Put current editor contents to eeprom
     """
+
     class TestSnekMode(SnekMode):
         def toggle_repl(self, event):
             self.repl = True
@@ -63,7 +64,7 @@ def test_put():
     editor = mock.MagicMock()
     view = mock.MagicMock()
     mock_tab = mock.MagicMock()
-    mock_tab.text.return_value = '# Write your code here :-)\n'
+    mock_tab.text.return_value = "# Write your code here :-)\n"
     view.current_tab = mock_tab
     view.repl_pane = mock.MagicMock()
     view.repl_pane.send_commands = mock.MagicMock()
@@ -186,7 +187,7 @@ def test_snek_mode_add_repl_no_port():
     mm.find_device = mock.MagicMock(return_value=(None, None))
     mm.add_repl()
     assert view.show_message.call_count == 1
-    message = 'Could not find an attached device.'
+    message = "Could not find an attached device."
     assert view.show_message.call_args[0][0] == message
 
 
@@ -199,10 +200,10 @@ def test_snek_mode_add_repl_ioerror():
     editor = mock.MagicMock()
     view = mock.MagicMock()
     view.show_message = mock.MagicMock()
-    ex = IOError('BOOM')
+    ex = IOError("BOOM")
     view.add_snek_repl = mock.MagicMock(side_effect=ex)
     mm = SnekMode(editor, view)
-    mm.find_device = mock.MagicMock(return_value=('COM0', '12345'))
+    mm.find_device = mock.MagicMock(return_value=("COM0", "12345"))
     mm.add_repl()
     assert view.show_message.call_count == 1
     assert view.show_message.call_args[0][0] == str(ex)
@@ -214,11 +215,11 @@ def test_snek_mode_add_repl_exception():
     """
     editor = mock.MagicMock()
     view = mock.MagicMock()
-    ex = Exception('BOOM')
+    ex = Exception("BOOM")
     view.add_snek_repl = mock.MagicMock(side_effect=ex)
     mm = SnekMode(editor, view)
-    mm.find_device = mock.MagicMock(return_value=('COM0', '12345'))
-    with mock.patch('mu.modes.snek.logger', return_value=None) as logger:
+    mm.find_device = mock.MagicMock(return_value=("COM0", "12345"))
+    with mock.patch("mu.modes.snek.logger", return_value=None) as logger:
         mm.add_repl()
         logger.error.assert_called_once_with(ex)
 
@@ -233,11 +234,11 @@ def test_snek_mode_add_repl():
     view.show_message = mock.MagicMock()
     view.add_snek_repl = mock.MagicMock()
     mm = SnekMode(editor, view)
-    mm.find_device = mock.MagicMock(return_value=('COM0', '12345'))
-    with mock.patch('os.name', 'nt'):
+    mm.find_device = mock.MagicMock(return_value=("COM0", "12345"))
+    with mock.patch("os.name", "nt"):
         mm.add_repl()
     assert view.show_message.call_count == 0
-    assert view.add_snek_repl.call_args[0][0] == 'COM0'
+    assert view.add_snek_repl.call_args[0][0] == "COM0"
 
 
 def test_snek_mode_add_repl_no_force_interrupt():
@@ -251,11 +252,11 @@ def test_snek_mode_add_repl_no_force_interrupt():
     view.add_snek_repl = mock.MagicMock()
     mm = SnekMode(editor, view)
     mm.force_interrupt = False
-    mm.find_device = mock.MagicMock(return_value=('COM0', '12345'))
-    with mock.patch('os.name', 'nt'):
+    mm.find_device = mock.MagicMock(return_value=("COM0", "12345"))
+    with mock.patch("os.name", "nt"):
         mm.add_repl()
     assert view.show_message.call_count == 0
-    assert view.add_snek_repl.call_args[0][0] == 'COM0'
+    assert view.add_snek_repl.call_args[0][0] == "COM0"
     assert view.add_snek_repl.call_args[0][2] is False
 
 

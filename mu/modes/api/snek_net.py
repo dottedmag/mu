@@ -66,7 +66,9 @@ SNEK_NET_APIS = [
     _("math.isnan \nReturns True if x is not a number else False."),
     _("math.ldexp(x,y) \nReturns x * pow(2,y)."),
     _("math.modf(x) \nReturns (x - trunc(x), trunc(x))."),
-    _("math.remainder(x,y) \nReturns the remainder of x and y: x - round(x/y) * y."),
+    _(
+        "math.remainder(x,y) \nReturns the remainder of x and y: x - round(x/y) * y."
+    ),
     _(
         "math.trunc \nReturns the truncation of x, the integer closest to x which is no further from zero than x."
     ),
@@ -84,8 +86,12 @@ SNEK_NET_APIS = [
     _("math.pow(x,y) \nReturns x raised to the y^th^ power."),
     _("math.sqrt(x) \nReturn the square root of x."),
     # Trigonometric functions
-    _("math.acos(x) \nReturns the arc cosine of x in the range of 0 ≤ acos(x) ≤ π."),
-    _("math.asin(x) \nReturns the arc sine of x in the range of -π/2 ≤ asin(x) ≤ π/2."),
+    _(
+        "math.acos(x) \nReturns the arc cosine of x in the range of 0 ≤ acos(x) ≤ π."
+    ),
+    _(
+        "math.asin(x) \nReturns the arc sine of x in the range of -π/2 ≤ asin(x) ≤ π/2."
+    ),
     _(
         "math.atan(x) \nReturns the arc tangent of x in the range of -π/2 ≤ atan(x) ≤ π/2."
     ),
@@ -103,9 +109,15 @@ SNEK_NET_APIS = [
     _("math.acosh(x) \nReturns the inverse hyperbolic cosine of x."),
     _("math.asinh(x) \nReturns the inverse hyperbolic sine of x."),
     _("math.atanh(x) \nReturns the inverse hyperbolic tangent of x."),
-    _("math.cosh(x) \nReturns the hyperbolic cosine of x: (exp(x) + exp(-x)) / 2."),
-    _("math.sinh(x) \nReturns the hyperbolic sine of x: (exp(x) - exp(-x)) / 2."),
-    _("math.tanh(x) \nReturns the hyperbolic tangent of x: sinh(x) / cosh(x)."),
+    _(
+        "math.cosh(x) \nReturns the hyperbolic cosine of x: (exp(x) + exp(-x)) / 2."
+    ),
+    _(
+        "math.sinh(x) \nReturns the hyperbolic sine of x: (exp(x) - exp(-x)) / 2."
+    ),
+    _(
+        "math.tanh(x) \nReturns the hyperbolic tangent of x: sinh(x) / cosh(x)."
+    ),
     # Special functions
     _("math.erf(x) \nReturns the error function at x."),
     _(
@@ -133,6 +145,10 @@ SNEK_NET_APIS = [
     # Common
     _("time.sleep(s) \nDelay execution for s seconds.\n"),
     _("time.monotonic() \nReturns time in seconds since some reference time"),
-    _("random.seed(s) \nRe-initialize random number generator using s as the seed."),
-    _("random.randrange(m) \nReturns a random integer between 0 and m-1 inclusive."),
+    _(
+        "random.seed(s) \nRe-initialize random number generator using s as the seed."
+    ),
+    _(
+        "random.randrange(m) \nReturns a random integer between 0 and m-1 inclusive."
+    ),
 ]
