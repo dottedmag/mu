@@ -19,7 +19,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import logging
 from mu.modes.base import BaseMode
 from mu.modes.api import SNEK_NET_APIS
-#from mu.interface.panes import CHARTS
+
+# from mu.interface.panes import CHARTS
 from PyQt5.QtWidgets import QMessageBox
 
 logger = logging.getLogger(__name__)

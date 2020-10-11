@@ -42,7 +42,8 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtGui import QKeySequence, QStandardItemModel
 from PyQt5.QtSerialPort import QSerialPort
-#from PyQt5.QtNetwork import QTcpSocket
+
+# from PyQt5.QtNetwork import QTcpSocket
 from mu import __version__
 from mu.interface.dialogs import (
     ModeSelector,
