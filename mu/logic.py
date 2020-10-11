@@ -42,7 +42,7 @@ from mu import __version__
 
 
 # The user's home directory.
-HOME_DIRECTORY = os.path.expanduser("~")
+HOME_DIRECTORY = os.path.join(os.path.expanduser("~"), ".local", "share", "mu_code")
 # Name of the directory within the home folder to use by default
 WORKSPACE_NAME = "mu_code"
 # The default directory for application data (i.e., configuration).

@@ -7,6 +7,7 @@ from .pygamezero import PYGAMEZERO_APIS
 from .esp import ESP_APIS
 from .flask import FLASK_APIS
 from .snek import SNEK_APIS
+from .snek_net import SNEK_NET_APIS
 
 __all__ = [
     "ADAFRUIT_APIS",
@@ -18,4 +19,5 @@ __all__ = [
     "ESP_APIS",
     "FLASK_APIS",
     "SNEK_APIS",
+    "SNEK_NET_APIS",
 ]

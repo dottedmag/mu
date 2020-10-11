@@ -26,6 +26,7 @@ import signal
 import string
 import bisect
 import os.path
+import socket
 from PyQt5.QtCore import (
     Qt,
     QProcess,
@@ -137,19 +138,9 @@ class JupyterREPLPane(RichJupyterWidget):
         self._control.setFocus()
 
 
-class MicroPythonREPLPane(QTextEdit):
-    """
-    REPL = Read, Evaluate, Print, Loop.
-
-    This widget represents a REPL client connected to a device running
-    MicroPython.
-
-    The device MUST be flashed with MicroPython for this to work.
-    """
-
-    def __init__(self, serial, theme="day", parent=None):
+class MicroPythonBaseReplPane(QTextEdit):
+    def __init__(self, theme="day", parent=None):
         super().__init__(parent)
-        self.serial = serial
         self.setFont(Font().load())
         self.setAcceptRichText(False)
         self.setReadOnly(False)
@@ -165,10 +156,8 @@ class MicroPythonREPLPane(QTextEdit):
         """
         clipboard = QApplication.clipboard()
         if clipboard and clipboard.text():
-            to_paste = (
-                clipboard.text().replace("\n", "\r").replace("\r\r", "\r")
-            )
-            self.serial.write(bytes(to_paste, "utf8"))
+            to_paste = clipboard.text().replace("\n", "\r").replace("\r\r", "\r")
+            self._write(bytes(to_paste, "utf8"))
 
     def context_menu(self):
         """
@@ -214,12 +203,8 @@ class MicroPythonREPLPane(QTextEdit):
         elif key == Qt.Key_End:
             msg = b"\x1B[F"
         elif (
-            platform.system() == "Darwin"
-            and data.modifiers() == Qt.MetaModifier
-        ) or (
-            platform.system() != "Darwin"
-            and data.modifiers() == Qt.ControlModifier
-        ):
+            platform.system() == "Darwin" and data.modifiers() == Qt.MetaModifier
+        ) or (platform.system() != "Darwin" and data.modifiers() == Qt.ControlModifier):
             # Handle the Control key. On OSX/macOS/Darwin (python calls this
             # platform Darwin), this is handled by Qt.MetaModifier. Other
             # platforms (Linux, Windows) call this Qt.ControlModifier. Go
@@ -228,8 +213,7 @@ class MicroPythonREPLPane(QTextEdit):
                 # The microbit treats an input of \x01 as Ctrl+A, etc.
                 msg = bytes([1 + key - Qt.Key_A])
         elif (data.modifiers() == Qt.ControlModifier | Qt.ShiftModifier) or (
-            platform.system() == "Darwin"
-            and data.modifiers() == Qt.ControlModifier
+            platform.system() == "Darwin" and data.modifiers() == Qt.ControlModifier
         ):
             # Command-key on Mac, Ctrl-Shift on Win/Lin
             if key == Qt.Key_C:
@@ -238,7 +222,9 @@ class MicroPythonREPLPane(QTextEdit):
             elif key == Qt.Key_V:
                 self.paste()
                 msg = b""
-        self.serial.write(msg)
+        elif key == Qt.Key_Return:
+            msg = b"\n"
+        self._write(msg)
 
     def process_bytes(self, data):
         """
@@ -287,8 +273,7 @@ class MicroPythonREPLPane(QTextEdit):
                     elif m.group("action") == "K":  # delete things
                         if m.group("count") == "":  # delete to end of line
                             tc.movePosition(
-                                QTextCursor.EndOfLine,
-                                mode=QTextCursor.KeepAnchor,
+                                QTextCursor.EndOfLine, mode=QTextCursor.KeepAnchor,
                             )
                             tc.removeSelectedText()
                             self.setTextCursor(tc)
@@ -351,13 +336,31 @@ class MicroPythonREPLPane(QTextEdit):
         if commands:
             command = commands[0]
             logger.info("Sending command {}".format(command))
-            self.serial.write(command)
+            self._write(command)
             remainder = commands[1:]
             remaining_task = lambda commands=remainder: self.execute(commands)
             QTimer.singleShot(2, remaining_task)
 
 
-class SnekREPLPane(MicroPythonREPLPane):
+class MicroPythonREPLPane(MicroPythonBaseReplPane):
+    """
+    REPL = Read, Evaluate, Print, Loop.
+
+    This widget represents a REPL client connected to a device running
+    MicroPython.
+
+    The device MUST be flashed with MicroPython for this to work.
+    """
+
+    def __init__(self, serial, theme="day", parent=None):
+        super().__init__(theme, parent)
+        self.serial = serial
+
+    def _write(self, msg):
+        self.serial.write(b)
+
+
+class SnekBaseREPLPane(MicroPythonBaseReplPane):
     """
     REPL = Read, Evaluate, Print, Loop.
 
@@ -367,10 +370,10 @@ class SnekREPLPane(MicroPythonREPLPane):
     The device MUST be flashed with Snek for this to work.
     """
 
-    def __init__(self, serial, theme='day', parent=None):
-        super().__init__(serial, theme, parent)
+    def __init__(self, theme="day", parent=None):
+        super().__init__(theme, parent)
         self.getting_text = False
-        self.text = b''
+        self.text = b""
         self.text_recv = None
 
     def send_commands(self, commands):
@@ -378,11 +381,11 @@ class SnekREPLPane(MicroPythonREPLPane):
         Send commands to the REPL via raw mode.
         """
         raw_on = [  # Sequence of commands to get into raw mode.
-            b'\x0e\x03',
+#            b"\x0e\x03",
         ]
-        commands = [c.encode('utf-8') for c in commands]
+        commands = [c.encode("utf-8") for c in commands]
         raw_off = [
-            b'\x0f',
+#            b"\x0f",
         ]
         command_sequence = raw_on + commands + raw_off
         logger.info(command_sequence)
@@ -400,14 +403,14 @@ class SnekREPLPane(MicroPythonREPLPane):
             pass
         i = 0
         while i < len(data):
-            if data[i] == 2:   # ctrl-b
+            if data[i] == 2:  # ctrl-b
                 self.getting_text = True
-                self.text = b''
+                self.text = b""
             elif data[i] == 3:  # ctrl-c
                 if self.text_recv:
-                    s = self.text.decode('utf-8', 'replace')
+                    s = self.text.decode("utf-8", "replace")
                     self.text_recv.recv_text(s)
-                    self.text = b''
+                    self.text = b""
                 self.getting_text = False
             else:
                 if self.getting_text:
@@ -429,6 +432,28 @@ class SnekREPLPane(MicroPythonREPLPane):
                         self.insertPlainText(chr(data[i]))
             i += 1
         self.ensureCursorVisible()
+
+
+class SnekREPLPane(SnekBaseREPLPane):
+    def __init__(self, serial, theme="day", parent=None):
+        super().__init__(theme, parent)
+        self.serial = serial
+
+    def _write(self, msg):
+        self.serial.write(msg)
+
+
+class SnekNetREPLPane(SnekBaseREPLPane):
+    def __init__(self, conn, theme="day", parent=None):
+        super().__init__(parent)
+        self.conn = conn
+
+    def _write(self, msg):
+        for b in msg:
+            if b == 3:
+                self.conn.send(bytes([b]), socket.MSG_OOB)
+            else:
+                self.conn.send(bytes([b]))
 
 
 class MuFileList(QListWidget):
@@ -470,18 +495,10 @@ class MicroPythonDeviceFileList(MuFileList):
     def dropEvent(self, event):
         source = event.source()
         if isinstance(source, LocalFileList):
-            file_exists = self.findItems(
-                source.currentItem().text(), Qt.MatchExactly
-            )
-            if (
-                not file_exists
-                or file_exists
-                and self.show_confirm_overwrite_dialog()
-            ):
+            file_exists = self.findItems(source.currentItem().text(), Qt.MatchExactly)
+            if not file_exists or file_exists and self.show_confirm_overwrite_dialog():
                 self.disable.emit()
-                local_filename = os.path.join(
-                    self.home, source.currentItem().text()
-                )
+                local_filename = os.path.join(self.home, source.currentItem().text())
                 msg = _("Copying '{}' to micro:bit.").format(local_filename)
                 logger.info(msg)
                 self.set_message.emit(msg)
@@ -512,9 +529,7 @@ class MicroPythonDeviceFileList(MuFileList):
         """
         Fired when the delete event is completed for the given filename.
         """
-        msg = _("'{}' successfully deleted from micro:bit.").format(
-            microbit_file
-        )
+        msg = _("'{}' successfully deleted from micro:bit.").format(microbit_file)
         self.set_message.emit(msg)
         self.list_files.emit()
 
@@ -535,20 +550,14 @@ class LocalFileList(MuFileList):
     def dropEvent(self, event):
         source = event.source()
         if isinstance(source, MicroPythonDeviceFileList):
-            file_exists = self.findItems(
-                source.currentItem().text(), Qt.MatchExactly
-            )
-            if (
-                not file_exists
-                or file_exists
-                and self.show_confirm_overwrite_dialog()
-            ):
+            file_exists = self.findItems(source.currentItem().text(), Qt.MatchExactly)
+            if not file_exists or file_exists and self.show_confirm_overwrite_dialog():
                 self.disable.emit()
                 microbit_filename = source.currentItem().text()
                 local_filename = os.path.join(self.home, microbit_filename)
-                msg = _(
-                    "Getting '{}' from micro:bit. " "Copying to '{}'."
-                ).format(microbit_filename, local_filename)
+                msg = _("Getting '{}' from micro:bit. " "Copying to '{}'.").format(
+                    microbit_filename, local_filename
+                )
                 logger.info(msg)
                 self.set_message.emit(msg)
                 self.get.emit(microbit_filename, local_filename)
@@ -866,9 +875,7 @@ class PythonProcessPane(QTextEdit):
                     # Add Mu's working directory.
                     paths_to_use.add(os.path.normcase(working_directory))
                     # Add the directory containing the script.
-                    paths_to_use.add(
-                        os.path.normcase(os.path.dirname(self.script))
-                    )
+                    paths_to_use.add(os.path.normcase(os.path.dirname(self.script)))
                     # Dropping a mu.pth file containing the paths_to_use
                     # into USER_SITE will add such paths to sys.path in the
                     # child process.
@@ -891,9 +898,7 @@ class PythonProcessPane(QTextEdit):
         if "PYTHONPATH" not in envars:
             envars.append(("PYTHONPATH", os.pathsep.join(sys.path)))
         if envars:
-            logger.info(
-                "Running with environment variables: " "{}".format(envars)
-            )
+            logger.info("Running with environment variables: " "{}".format(envars))
             for name, value in envars:
                 env.insert(name, value)
         logger.info("Working directory: {}".format(working_directory))
@@ -1041,9 +1046,7 @@ class PythonProcessPane(QTextEdit):
         msg = b""  # Eventually to be inserted into the pane at the cursor.
         if key == Qt.Key_Enter or key == Qt.Key_Return:
             msg = b"\n"
-        elif (
-            platform.system() == "Darwin" and modifiers == Qt.MetaModifier
-        ) or (
+        elif (platform.system() == "Darwin" and modifiers == Qt.MetaModifier) or (
             platform.system() != "Darwin" and modifiers == Qt.ControlModifier
         ):
             # Handle CTRL-C and CTRL-D
@@ -1297,9 +1300,7 @@ class DebugInspector(QTreeView):
         Sets the font size for all the textual elements in this pane.
         """
         stylesheet = (
-            "QWidget{font-size: "
-            + str(new_size)
-            + "pt; font-family: Monospace;}"
+            "QWidget{font-size: " + str(new_size) + "pt; font-family: Monospace;}"
         )
         self.setStyleSheet(stylesheet)
 
